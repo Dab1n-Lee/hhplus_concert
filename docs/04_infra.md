@@ -1,19 +1,12 @@
 # 인프라 구성도
 
 ```mermaid
-flowchart LR
-    Client[Client(Web/Mobile)]
-    LB[Load Balancer]
-    API[API Server\n(Multi Instance)]
-    Redis[(Redis)]
-    DB[(RDBMS)]
-    Worker[Scheduler/Worker]
-
-    Client --> LB
-    LB --> API
-    API --> Redis
-    API --> DB
-    Worker --> DB
+graph LR
+    Client["Client<br/>Web/Mobile"] --> LB["Load Balancer"]
+    LB --> API["API Server<br/>Multi Instance"]
+    API --> Redis[(Redis)]
+    API --> DB[(RDBMS)]
+    Worker["Scheduler/Worker"] --> DB
     Worker --> Redis
 ```
 
