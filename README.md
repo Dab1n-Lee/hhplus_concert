@@ -24,6 +24,7 @@
 
 - [요구사항 및 API 명세](docs/01_requirements.md)
 - [시퀀스 다이어그램](docs/02_sequenceDiagram.md)
+- [엔티티 관계 다이어그램(ERD)](docs/03_erd.md)
 
 ## Getting Started
 
