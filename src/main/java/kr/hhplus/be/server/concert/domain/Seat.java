@@ -57,6 +57,26 @@ public class Seat {
         return new Seat(concertDate, seatNumber, SeatStatus.AVAILABLE);
     }
 
+    public void hold(String userId, LocalDateTime expiresAt) {
+        this.status = SeatStatus.HELD;
+        this.holdUserId = userId;
+        this.holdExpiresAt = expiresAt;
+    }
+
+    public void releaseHold() {
+        this.status = SeatStatus.AVAILABLE;
+        this.holdUserId = null;
+        this.holdExpiresAt = null;
+        this.reservedUserId = null;
+    }
+
+    public void reserve(String userId) {
+        this.status = SeatStatus.RESERVED;
+        this.reservedUserId = userId;
+        this.holdUserId = null;
+        this.holdExpiresAt = null;
+    }
+
     public Long getId() {
         return id;
     }
