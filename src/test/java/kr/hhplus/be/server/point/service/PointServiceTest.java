@@ -63,4 +63,25 @@ class PointServiceTest {
 
         assertThat(point.getBalance()).isZero();
     }
+
+    @Test
+    void usesPointsWhenSufficient() {
+        String userId = "user-5";
+        UserPoint existing = new UserPoint(userId, 80L);
+        when(userPointRepository.findByUserIdForUpdate(userId)).thenReturn(Optional.of(existing));
+
+        UserPoint updated = pointService.use(userId, 30L);
+
+        assertThat(updated.getBalance()).isEqualTo(50L);
+    }
+
+    @Test
+    void rejectsUseWhenInsufficient() {
+        String userId = "user-6";
+        UserPoint existing = new UserPoint(userId, 20L);
+        when(userPointRepository.findByUserIdForUpdate(userId)).thenReturn(Optional.of(existing));
+
+        assertThatThrownBy(() -> pointService.use(userId, 30L))
+            .isInstanceOf(IllegalStateException.class);
+    }
 }
