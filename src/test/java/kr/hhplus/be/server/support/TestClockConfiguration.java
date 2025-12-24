@@ -1,0 +1,14 @@
+package kr.hhplus.be.server.support;
+
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+
+@TestConfiguration
+public class TestClockConfiguration {
+    @Bean
+    @Primary
+    public TestClockProvider testClockProvider() {
+        return new TestClockProvider();
+    }
+}
