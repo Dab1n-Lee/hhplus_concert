@@ -36,6 +36,10 @@ public class UserPoint {
         this.balance += amount;
     }
 
+    public void use(long amount) {
+        this.balance -= amount;
+    }
+
     public Long getId() {
         return id;
     }

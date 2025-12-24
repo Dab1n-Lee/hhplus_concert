@@ -31,4 +31,21 @@ public class PointService {
         return userPointRepository.findByUserId(userId)
             .orElseGet(() -> new UserPoint(userId, 0L));
     }
+
+    @Transactional
+    public UserPoint use(String userId, long amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Use amount must be positive.");
+        }
+
+        UserPoint userPoint = userPointRepository.findByUserIdForUpdate(userId)
+            .orElseThrow(() -> new IllegalStateException("User point not found."));
+
+        if (userPoint.getBalance() < amount) {
+            throw new IllegalStateException("Insufficient points.");
+        }
+
+        userPoint.use(amount);
+        return userPoint;
+    }
 }
