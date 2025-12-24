@@ -3,12 +3,12 @@ package kr.hhplus.be.server.reservation.adapter;
 import kr.hhplus.be.server.reservation.adapter.jpa.PaymentEntity;
 import kr.hhplus.be.server.reservation.adapter.jpa.PaymentJpaRepository;
 import kr.hhplus.be.server.reservation.domain.Payment;
-import kr.hhplus.be.server.reservation.port.PaymentPort;
+import kr.hhplus.be.server.reservation.port.PaymentRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
-public class PaymentJpaAdapter implements PaymentPort {
+public class PaymentJpaAdapter implements PaymentRepository {
     private final PaymentJpaRepository paymentJpaRepository;
 
     public PaymentJpaAdapter(PaymentJpaRepository paymentJpaRepository) {

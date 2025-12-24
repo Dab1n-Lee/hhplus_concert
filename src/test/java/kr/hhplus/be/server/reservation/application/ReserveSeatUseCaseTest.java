@@ -12,7 +12,7 @@ import kr.hhplus.be.server.reservation.domain.Reservation;
 import kr.hhplus.be.server.reservation.domain.Seat;
 import kr.hhplus.be.server.reservation.domain.SeatStatus;
 import kr.hhplus.be.server.reservation.port.ClockProvider;
-import kr.hhplus.be.server.reservation.port.ReservationPort;
+import kr.hhplus.be.server.reservation.port.SeatReservationRepository;
 import kr.hhplus.be.server.reservation.port.SeatPort;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +27,7 @@ class ReserveSeatUseCaseTest {
     private SeatPort seatPort;
 
     @Mock
-    private ReservationPort reservationPort;
+    private SeatReservationRepository reservationPort;
 
     @Mock
     private ClockProvider clockProvider;

@@ -3,7 +3,7 @@ package kr.hhplus.be.server.reservation.application;
 import java.time.LocalDateTime;
 import kr.hhplus.be.server.reservation.domain.Reservation;
 import kr.hhplus.be.server.reservation.port.ClockProvider;
-import kr.hhplus.be.server.reservation.port.ReservationPort;
+import kr.hhplus.be.server.reservation.port.SeatReservationRepository;
 import kr.hhplus.be.server.reservation.port.SeatPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,12 +14,12 @@ public class ReserveSeatUseCase {
     private static final int HOLD_MINUTES = 5;
 
     private final SeatPort seatPort;
-    private final ReservationPort reservationPort;
+    private final SeatReservationRepository reservationPort;
     private final ClockProvider clockProvider;
 
     public ReserveSeatUseCase(
         SeatPort seatPort,
-        ReservationPort reservationPort,
+        SeatReservationRepository reservationPort,
         ClockProvider clockProvider
     ) {
         this.seatPort = seatPort;

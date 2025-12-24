@@ -14,9 +14,9 @@ import kr.hhplus.be.server.reservation.domain.Seat;
 import kr.hhplus.be.server.reservation.domain.SeatStatus;
 import kr.hhplus.be.server.reservation.port.ClockProvider;
 import kr.hhplus.be.server.reservation.port.NotificationPort;
-import kr.hhplus.be.server.reservation.port.PaymentPort;
-import kr.hhplus.be.server.reservation.port.PointPort;
-import kr.hhplus.be.server.reservation.port.ReservationPort;
+import kr.hhplus.be.server.reservation.port.PaymentRepository;
+import kr.hhplus.be.server.reservation.port.SeatReservationRepository;
+import kr.hhplus.be.server.reservation.port.UserBalanceRepository;
 import kr.hhplus.be.server.reservation.port.SeatPort;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,16 +28,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class PayReservationUseCaseTest {
     @Mock
-    private ReservationPort reservationPort;
+    private SeatReservationRepository reservationPort;
 
     @Mock
     private SeatPort seatPort;
 
     @Mock
-    private PointPort pointPort;
+    private UserBalanceRepository pointPort;
 
     @Mock
-    private PaymentPort paymentPort;
+    private PaymentRepository paymentPort;
 
     @Mock
     private NotificationPort notificationPort;

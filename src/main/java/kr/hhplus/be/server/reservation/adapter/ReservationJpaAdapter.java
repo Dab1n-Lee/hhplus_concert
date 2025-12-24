@@ -5,12 +5,12 @@ import kr.hhplus.be.server.reservation.adapter.jpa.ReservationEntity;
 import kr.hhplus.be.server.reservation.adapter.jpa.ReservationJpaRepository;
 import kr.hhplus.be.server.reservation.domain.Reservation;
 import kr.hhplus.be.server.reservation.domain.ReservationStatus;
-import kr.hhplus.be.server.reservation.port.ReservationPort;
+import kr.hhplus.be.server.reservation.port.SeatReservationRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
-public class ReservationJpaAdapter implements ReservationPort {
+public class ReservationJpaAdapter implements SeatReservationRepository {
     private final ReservationJpaRepository reservationJpaRepository;
 
     public ReservationJpaAdapter(ReservationJpaRepository reservationJpaRepository) {

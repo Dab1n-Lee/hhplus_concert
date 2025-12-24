@@ -5,27 +5,27 @@ import kr.hhplus.be.server.reservation.domain.Payment;
 import kr.hhplus.be.server.reservation.domain.ReservationStatus;
 import kr.hhplus.be.server.reservation.port.ClockProvider;
 import kr.hhplus.be.server.reservation.port.NotificationPort;
-import kr.hhplus.be.server.reservation.port.PaymentPort;
-import kr.hhplus.be.server.reservation.port.PointPort;
-import kr.hhplus.be.server.reservation.port.ReservationPort;
+import kr.hhplus.be.server.reservation.port.PaymentRepository;
+import kr.hhplus.be.server.reservation.port.SeatReservationRepository;
+import kr.hhplus.be.server.reservation.port.UserBalanceRepository;
 import kr.hhplus.be.server.reservation.port.SeatPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PayReservationUseCase {
-    private final ReservationPort reservationPort;
+    private final SeatReservationRepository reservationPort;
     private final SeatPort seatPort;
-    private final PointPort pointPort;
-    private final PaymentPort paymentPort;
+    private final UserBalanceRepository pointPort;
+    private final PaymentRepository paymentPort;
     private final NotificationPort notificationPort;
     private final ClockProvider clockProvider;
 
     public PayReservationUseCase(
-        ReservationPort reservationPort,
+        SeatReservationRepository reservationPort,
         SeatPort seatPort,
-        PointPort pointPort,
-        PaymentPort paymentPort,
+        UserBalanceRepository pointPort,
+        PaymentRepository paymentPort,
         NotificationPort notificationPort,
         ClockProvider clockProvider
     ) {

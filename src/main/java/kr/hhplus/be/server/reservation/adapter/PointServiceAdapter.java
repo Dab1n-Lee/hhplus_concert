@@ -1,11 +1,11 @@
 package kr.hhplus.be.server.reservation.adapter;
 
 import kr.hhplus.be.server.point.service.PointService;
-import kr.hhplus.be.server.reservation.port.PointPort;
+import kr.hhplus.be.server.reservation.port.UserBalanceRepository;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PointServiceAdapter implements PointPort {
+public class PointServiceAdapter implements UserBalanceRepository {
     private final PointService pointService;
 
     public PointServiceAdapter(PointService pointService) {
