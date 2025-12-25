@@ -58,7 +58,6 @@ class PayReservationUseCaseTest {
         when(clockProvider.now()).thenReturn(now);
         when(reservationPort.loadForUpdate(101L)).thenReturn(reservation);
         when(seatPort.loadForUpdate(1L)).thenReturn(seat);
-        when(pointPort.getBalance("user-1")).thenReturn(100L);
         when(paymentPort.save(any(Payment.class))).thenAnswer(invocation -> {
             Payment payment = invocation.getArgument(0);
             payment.setId(500L);
@@ -85,9 +84,11 @@ class PayReservationUseCaseTest {
         when(clockProvider.now()).thenReturn(now);
         when(reservationPort.loadForUpdate(101L)).thenReturn(reservation);
         when(seatPort.loadForUpdate(1L)).thenReturn(seat);
-        when(pointPort.getBalance("user-1")).thenReturn(10L);
+        org.mockito.Mockito.doThrow(new IllegalStateException("Insufficient points."))
+            .when(pointPort).use("user-1", 50L);
 
         assertThatThrownBy(() -> payReservationUseCase.pay(new PayReservationCommand(101L, "user-1", 50L)))
-            .isInstanceOf(IllegalStateException.class);
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("Insufficient points");
     }
 }
