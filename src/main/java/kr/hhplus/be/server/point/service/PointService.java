@@ -38,14 +38,16 @@ public class PointService {
             throw new IllegalArgumentException("Use amount must be positive.");
         }
 
-        UserPoint userPoint = userPointRepository.findByUserIdForUpdate(userId)
-            .orElseThrow(() -> new IllegalStateException("User point not found."));
-
-        if (userPoint.getBalance() < amount) {
+        // 조건부 UPDATE를 사용하여 원자적으로 잔액 확인 및 차감
+        int updatedRows = userPointRepository.deductIfSufficient(userId, amount);
+        if (updatedRows == 0) {
+            // 업데이트된 행이 없으면 잔액 부족 또는 사용자 없음
+            UserPoint userPoint = userPointRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalStateException("User point not found."));
             throw new IllegalStateException("Insufficient points.");
         }
 
-        userPoint.use(amount);
-        return userPoint;
+        return userPointRepository.findByUserId(userId)
+            .orElseThrow(() -> new IllegalStateException("User point not found."));
     }
 }

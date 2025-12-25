@@ -64,10 +64,8 @@ public class PayReservationUseCase {
             throw new IllegalStateException("Seat is not held by user.");
         }
 
-        if (pointPort.getBalance(command.getUserId()) < command.getAmount()) {
-            throw new IllegalStateException("Insufficient points.");
-        }
-
+        // pointPort.use() 내부에서 조건부 UPDATE를 사용하여 원자적으로 잔액 확인 및 차감
+        // getBalance() 호출을 제거하여 동시성 문제 해결
         pointPort.use(command.getUserId(), command.getAmount());
         seat.reserve(command.getUserId());
         seatPort.save(seat);
