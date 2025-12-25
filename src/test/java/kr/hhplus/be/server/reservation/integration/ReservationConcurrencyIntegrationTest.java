@@ -77,7 +77,7 @@ class ReservationConcurrencyIntegrationTest {
 
         testClockProvider.setNow(LocalDateTime.of(2025, 1, 1, 10, 0));
 
-        int threadCount = 5;
+        int threadCount = 10;
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         CountDownLatch ready = new CountDownLatch(threadCount);
         CountDownLatch start = new CountDownLatch(1);
@@ -110,7 +110,13 @@ class ReservationConcurrencyIntegrationTest {
         executor.shutdown();
         executor.awaitTermination(5, TimeUnit.SECONDS);
 
+        // 동시에 여러 요청이 와도 하나만 성공해야 함
         assertThat(successCount).isEqualTo(1);
         assertThat(reservationJpaRepository.count()).isEqualTo(1);
+        
+        // 좌석 상태가 HELD로 변경되었는지 확인
+        Seat savedSeat = seatRepository.findForUpdateByDateAndSeatNumber(concertDate, 10)
+            .orElseThrow();
+        assertThat(savedSeat.getStatus()).isEqualTo(kr.hhplus.be.server.concert.domain.SeatStatus.HELD);
     }
 }
