@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.reservation.application;
 
 import java.time.LocalDateTime;
+import kr.hhplus.be.server.lock.adapter.redis.SpinDistributedLock;
 import kr.hhplus.be.server.reservation.domain.Payment;
 import kr.hhplus.be.server.reservation.domain.ReservationStatus;
 import kr.hhplus.be.server.reservation.port.ClockProvider;
@@ -14,12 +15,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PayReservationUseCase {
+    private static final long LOCK_WAIT_TIME_MS = 1000; // 1 second
+    private static final long LOCK_LEASE_TIME_MS = 5000; // 5 seconds
+
     private final SeatReservationRepository reservationPort;
     private final SeatPort seatPort;
     private final UserBalanceRepository pointPort;
     private final PaymentRepository paymentPort;
     private final NotificationPort notificationPort;
     private final ClockProvider clockProvider;
+    private final SpinDistributedLock distributedLock;
 
     public PayReservationUseCase(
         SeatReservationRepository reservationPort,
@@ -27,7 +32,8 @@ public class PayReservationUseCase {
         UserBalanceRepository pointPort,
         PaymentRepository paymentPort,
         NotificationPort notificationPort,
-        ClockProvider clockProvider
+        ClockProvider clockProvider,
+        SpinDistributedLock distributedLock
     ) {
         this.reservationPort = reservationPort;
         this.seatPort = seatPort;
@@ -35,10 +41,23 @@ public class PayReservationUseCase {
         this.paymentPort = paymentPort;
         this.notificationPort = notificationPort;
         this.clockProvider = clockProvider;
+        this.distributedLock = distributedLock;
+    }
+
+    public Payment pay(PayReservationCommand command) {
+        // Lock key: reservation-specific lock to prevent concurrent payment of the same reservation
+        String lockKey = "reservation:pay:" + command.getReservationId();
+        
+        return distributedLock.executeWithLock(
+            lockKey,
+            LOCK_WAIT_TIME_MS,
+            LOCK_LEASE_TIME_MS,
+            () -> payInternal(command)
+        );
     }
 
     @Transactional
-    public Payment pay(PayReservationCommand command) {
+    private Payment payInternal(PayReservationCommand command) {
         LocalDateTime now = clockProvider.now();
         var reservation = reservationPort.loadForUpdate(command.getReservationId());
 
