@@ -2,6 +2,7 @@ package kr.hhplus.be.server.reservation.application;
 
 import java.time.LocalDateTime;
 import kr.hhplus.be.server.concert.service.ConcertQueryService;
+import kr.hhplus.be.server.concert.service.ConcertRankingService;
 import kr.hhplus.be.server.lock.adapter.redis.SpinDistributedLock;
 import kr.hhplus.be.server.reservation.domain.Payment;
 import kr.hhplus.be.server.reservation.domain.ReservationStatus;
@@ -27,6 +28,7 @@ public class PayReservationUseCase {
     private final ClockProvider clockProvider;
     private final SpinDistributedLock distributedLock;
     private final ConcertQueryService concertQueryService;
+    private final ConcertRankingService concertRankingService;
 
     public PayReservationUseCase(
         SeatReservationRepository reservationPort,
@@ -36,7 +38,8 @@ public class PayReservationUseCase {
         NotificationPort notificationPort,
         ClockProvider clockProvider,
         SpinDistributedLock distributedLock,
-        ConcertQueryService concertQueryService
+        ConcertQueryService concertQueryService,
+        ConcertRankingService concertRankingService
     ) {
         this.reservationPort = reservationPort;
         this.seatPort = seatPort;
@@ -46,6 +49,7 @@ public class PayReservationUseCase {
         this.clockProvider = clockProvider;
         this.distributedLock = distributedLock;
         this.concertQueryService = concertQueryService;
+        this.concertRankingService = concertRankingService;
     }
 
     public Payment pay(PayReservationCommand command) {
@@ -103,6 +107,9 @@ public class PayReservationUseCase {
 
         // Evict cache for the concert date when payment is completed
         concertQueryService.evictAvailableSeatsCache(seat.getConcertDate());
+
+        // Update ranking: increment sold-out count for the concert date
+        concertRankingService.incrementSoldOutCount(seat.getConcertDate());
 
         return payment;
     }
