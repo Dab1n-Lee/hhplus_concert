@@ -2,16 +2,22 @@ package kr.hhplus.be.server.concert.service;
 
 import java.time.LocalDate;
 import java.util.List;
-import kr.hhplus.be.server.ServerApplicationTests;
+import kr.hhplus.be.server.TestcontainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ConcertRankingServiceTest extends ServerApplicationTests {
+@SpringBootTest
+@ActiveProfiles("test")
+@Import({TestcontainersConfiguration.class})
+class ConcertRankingServiceTest {
 
     @Autowired
     private ConcertRankingService concertRankingService;
