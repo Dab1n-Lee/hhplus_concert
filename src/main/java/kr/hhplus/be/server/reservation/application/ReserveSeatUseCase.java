@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.reservation.application;
 
 import java.time.LocalDateTime;
+import kr.hhplus.be.server.concert.service.ConcertQueryService;
 import kr.hhplus.be.server.lock.adapter.redis.SpinDistributedLock;
 import kr.hhplus.be.server.reservation.domain.Reservation;
 import kr.hhplus.be.server.reservation.port.ClockProvider;
@@ -20,17 +21,20 @@ public class ReserveSeatUseCase {
     private final SeatReservationRepository reservationPort;
     private final ClockProvider clockProvider;
     private final SpinDistributedLock distributedLock;
+    private final ConcertQueryService concertQueryService;
 
     public ReserveSeatUseCase(
         SeatPort seatPort,
         SeatReservationRepository reservationPort,
         ClockProvider clockProvider,
-        SpinDistributedLock distributedLock
+        SpinDistributedLock distributedLock,
+        ConcertQueryService concertQueryService
     ) {
         this.seatPort = seatPort;
         this.reservationPort = reservationPort;
         this.clockProvider = clockProvider;
         this.distributedLock = distributedLock;
+        this.concertQueryService = concertQueryService;
     }
 
     public Reservation reserve(ReserveSeatCommand command) {
@@ -70,6 +74,11 @@ public class ReserveSeatUseCase {
         seatPort.save(seat);
 
         Reservation reservation = Reservation.hold(seat.getId(), command.getUserId(), expiresAt, now);
-        return reservationPort.save(reservation);
+        Reservation savedReservation = reservationPort.save(reservation);
+
+        // Evict cache for the concert date when seat is reserved
+        concertQueryService.evictAvailableSeatsCache(command.getConcertDate());
+
+        return savedReservation;
     }
 }

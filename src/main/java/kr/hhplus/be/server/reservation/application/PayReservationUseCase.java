@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.reservation.application;
 
 import java.time.LocalDateTime;
+import kr.hhplus.be.server.concert.service.ConcertQueryService;
 import kr.hhplus.be.server.lock.adapter.redis.SpinDistributedLock;
 import kr.hhplus.be.server.reservation.domain.Payment;
 import kr.hhplus.be.server.reservation.domain.ReservationStatus;
@@ -25,6 +26,7 @@ public class PayReservationUseCase {
     private final NotificationPort notificationPort;
     private final ClockProvider clockProvider;
     private final SpinDistributedLock distributedLock;
+    private final ConcertQueryService concertQueryService;
 
     public PayReservationUseCase(
         SeatReservationRepository reservationPort,
@@ -33,7 +35,8 @@ public class PayReservationUseCase {
         PaymentRepository paymentPort,
         NotificationPort notificationPort,
         ClockProvider clockProvider,
-        SpinDistributedLock distributedLock
+        SpinDistributedLock distributedLock,
+        ConcertQueryService concertQueryService
     ) {
         this.reservationPort = reservationPort;
         this.seatPort = seatPort;
@@ -42,6 +45,7 @@ public class PayReservationUseCase {
         this.notificationPort = notificationPort;
         this.clockProvider = clockProvider;
         this.distributedLock = distributedLock;
+        this.concertQueryService = concertQueryService;
     }
 
     public Payment pay(PayReservationCommand command) {
@@ -96,6 +100,10 @@ public class PayReservationUseCase {
             Payment.create(reservation.getId(), command.getUserId(), command.getAmount(), now)
         );
         notificationPort.sendReservationConfirmed(payment.getReservationId(), command.getUserId(), seat.getSeatNumber());
+
+        // Evict cache for the concert date when payment is completed
+        concertQueryService.evictAvailableSeatsCache(seat.getConcertDate());
+
         return payment;
     }
 }
