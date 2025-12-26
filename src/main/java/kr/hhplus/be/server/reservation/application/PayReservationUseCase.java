@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import kr.hhplus.be.server.concert.service.ConcertQueryService;
 import kr.hhplus.be.server.concert.service.ConcertRankingService;
 import kr.hhplus.be.server.lock.adapter.redis.SpinDistributedLock;
+import kr.hhplus.be.server.reservation.application.event.ReservationCompletedEvent;
 import kr.hhplus.be.server.reservation.domain.Payment;
 import kr.hhplus.be.server.reservation.domain.ReservationStatus;
 import kr.hhplus.be.server.reservation.port.ClockProvider;
@@ -12,6 +13,7 @@ import kr.hhplus.be.server.reservation.port.PaymentRepository;
 import kr.hhplus.be.server.reservation.port.SeatReservationRepository;
 import kr.hhplus.be.server.reservation.port.UserBalanceRepository;
 import kr.hhplus.be.server.reservation.port.SeatPort;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +31,7 @@ public class PayReservationUseCase {
     private final SpinDistributedLock distributedLock;
     private final ConcertQueryService concertQueryService;
     private final ConcertRankingService concertRankingService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public PayReservationUseCase(
         SeatReservationRepository reservationPort,
@@ -39,7 +42,8 @@ public class PayReservationUseCase {
         ClockProvider clockProvider,
         SpinDistributedLock distributedLock,
         ConcertQueryService concertQueryService,
-        ConcertRankingService concertRankingService
+        ConcertRankingService concertRankingService,
+        ApplicationEventPublisher eventPublisher
     ) {
         this.reservationPort = reservationPort;
         this.seatPort = seatPort;
@@ -50,6 +54,7 @@ public class PayReservationUseCase {
         this.distributedLock = distributedLock;
         this.concertQueryService = concertQueryService;
         this.concertRankingService = concertRankingService;
+        this.eventPublisher = eventPublisher;
     }
 
     public Payment pay(PayReservationCommand command) {
@@ -110,6 +115,17 @@ public class PayReservationUseCase {
 
         // Update ranking: increment sold-out count for the concert date
         concertRankingService.incrementSoldOutCount(seat.getConcertDate());
+
+        // Publish reservation completed event
+        ReservationCompletedEvent event = new ReservationCompletedEvent(
+            reservation.getId(),
+            command.getUserId(),
+            payment.getId(),
+            command.getAmount(),
+            seat.getConcertDate(),
+            seat.getSeatNumber()
+        );
+        eventPublisher.publishEvent(event);
 
         return payment;
     }
