@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.point.service;
 
+import kr.hhplus.be.server.lock.adapter.redis.SpinDistributedLock;
 import kr.hhplus.be.server.point.domain.UserPoint;
 import kr.hhplus.be.server.point.repository.UserPointRepository;
 import org.springframework.stereotype.Service;
@@ -7,14 +8,29 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PointService {
-    private final UserPointRepository userPointRepository;
+    private static final long LOCK_WAIT_TIME_MS = 1000; // 1 second
+    private static final long LOCK_LEASE_TIME_MS = 5000; // 5 seconds
 
-    public PointService(UserPointRepository userPointRepository) {
+    private final UserPointRepository userPointRepository;
+    private final SpinDistributedLock distributedLock;
+
+    public PointService(UserPointRepository userPointRepository, SpinDistributedLock distributedLock) {
         this.userPointRepository = userPointRepository;
+        this.distributedLock = distributedLock;
+    }
+
+    public UserPoint charge(String userId, long amount) {
+        String lockKey = "user:point:charge:" + userId;
+        return distributedLock.executeWithLock(
+            lockKey,
+            LOCK_WAIT_TIME_MS,
+            LOCK_LEASE_TIME_MS,
+            () -> chargeInternal(userId, amount)
+        );
     }
 
     @Transactional
-    public UserPoint charge(String userId, long amount) {
+    private UserPoint chargeInternal(String userId, long amount) {
         if (amount <= 0) {
             throw new IllegalArgumentException("Charge amount must be positive.");
         }
@@ -32,8 +48,18 @@ public class PointService {
             .orElseGet(() -> new UserPoint(userId, 0L));
     }
 
-    @Transactional
     public UserPoint use(String userId, long amount) {
+        String lockKey = "user:point:use:" + userId;
+        return distributedLock.executeWithLock(
+            lockKey,
+            LOCK_WAIT_TIME_MS,
+            LOCK_LEASE_TIME_MS,
+            () -> useInternal(userId, amount)
+        );
+    }
+
+    @Transactional
+    private UserPoint useInternal(String userId, long amount) {
         if (amount <= 0) {
             throw new IllegalArgumentException("Use amount must be positive.");
         }
