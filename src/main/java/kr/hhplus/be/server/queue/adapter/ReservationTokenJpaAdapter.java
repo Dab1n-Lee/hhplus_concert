@@ -5,9 +5,11 @@ import kr.hhplus.be.server.queue.adapter.jpa.ReservationTokenEntity;
 import kr.hhplus.be.server.queue.adapter.jpa.ReservationTokenJpaRepository;
 import kr.hhplus.be.server.queue.domain.ReservationToken;
 import kr.hhplus.be.server.queue.port.ReservationTokenRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+@ConditionalOnProperty(name = "queue.use-jpa", havingValue = "true", matchIfMissing = false)
 @Component
 public class ReservationTokenJpaAdapter implements ReservationTokenRepository {
     private final ReservationTokenJpaRepository reservationTokenJpaRepository;

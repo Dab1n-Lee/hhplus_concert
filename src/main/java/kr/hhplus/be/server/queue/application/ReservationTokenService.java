@@ -7,7 +7,6 @@ import kr.hhplus.be.server.queue.domain.ReservationTokenStatus;
 import kr.hhplus.be.server.queue.port.ReservationTokenRepository;
 import kr.hhplus.be.server.reservation.port.ClockProvider;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ReservationTokenService {
@@ -24,7 +23,6 @@ public class ReservationTokenService {
         this.clockProvider = clockProvider;
     }
 
-    @Transactional
     public ReservationToken issue(String userId) {
         LocalDateTime now = clockProvider.now();
         var existing = reservationTokenRepository.findLatestByUserId(userId);
@@ -39,17 +37,25 @@ public class ReservationTokenService {
             }
         }
 
-        ReservationToken newToken = ReservationToken.issue(
+        // 새 토큰을 WAITING 상태로 생성 (Redis 어댑터가 처리함)
+        String tokenValue = UUID.randomUUID().toString();
+        LocalDateTime createdAt = now;
+        
+        // WAITING 상태로 토큰 생성
+        ReservationToken newToken = ReservationToken.rebuild(
+            null,
             userId,
-            UUID.randomUUID().toString(),
-            1,
+            tokenValue,
+            ReservationTokenStatus.WAITING,
+            0, // position은 save 후 계산됨
             now.plusMinutes(TOKEN_TTL_MINUTES),
-            now
+            createdAt
         );
+        
+        // Redis 어댑터가 WAITING 큐에 추가하고 필요시 ACTIVE로 승격
         return reservationTokenRepository.save(newToken);
     }
 
-    @Transactional
     public ReservationToken validateActive(String tokenValue) {
         LocalDateTime now = clockProvider.now();
         ReservationToken token = reservationTokenRepository.findByToken(tokenValue)
@@ -68,7 +74,6 @@ public class ReservationTokenService {
         return token;
     }
 
-    @Transactional
     public void complete(String tokenValue) {
         ReservationToken token = validateActive(tokenValue);
         token.complete();
